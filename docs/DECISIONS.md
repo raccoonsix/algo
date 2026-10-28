@@ -14,8 +14,8 @@
 | D-003 | Initial market scope: one liquid spot pair, 1h primary, 15m secondary | PROPOSED |
 | D-004 | Data source: one exchange via public REST market data | OPEN |
 | D-005 | LLM: DeepSeek V4.1 Flash behind `LLMClient`, model ID from config | PROPOSED |
-| D-006 | Python >= 3.11 and core library set | PROPOSED |
-| D-007 | Storage formats: Parquet, JSONL, SQLite | PROPOSED |
+| D-006 | Python >= 3.11 and core library set | ACCEPTED |
+| D-007 | Storage formats: Parquet, JSONL, SQLite | ACCEPTED |
 | D-008 | Execution assumption: signal at bar close, fill at next bar open | ACCEPTED |
 | D-009 | Long/flat only, no leverage, in v1 | PROPOSED |
 | D-010 | Single-use, access-locked final holdout | ACCEPTED |
@@ -87,16 +87,16 @@
 - Revisit when: Provider changes model IDs, pricing, or deprecates the model.
 
 ### D-006: Python >= 3.11 and core library set
-- Status: PROPOSED
+- Status: ACCEPTED
 - Date: 2026-10-28
 - Context: Brief mandates Python. Libraries must be widely known to AI coding agents and well tested.
-- Decision (proposed): pandas, numpy, pyarrow, pydantic v2, pyyaml, httpx; dev: pytest, hypothesis, ruff, mypy. Standard library `statistics.NormalDist` for normal CDF/inverse (avoids scipy dependency).
+- Decision: Python `>=3.11,<3.15`. Runtime: pandas, numpy, pyarrow, pydantic v2, pyyaml, httpx. Dev: pytest, hypothesis, ruff, mypy. Standard library `statistics.NormalDist` for normal CDF/inverse (avoids scipy dependency). Pinned exact versions live in `pyproject.toml` and `requirements.lock` (T-1.2).
 - Alternatives considered: Polars (faster, less familiar to many agents); scipy (heavier; only needed for normal functions); ccxt (broad but hides exchange details; may be reconsidered behind the adapter).
-- Consequences: Any additional dependency needs a new entry (R-13).
+- Consequences: Any additional dependency needs a new entry (R-13). Upper bound `<3.15` reflects the tested interpreter range at acceptance; revisit when a newer interpreter is validated.
 - Revisit when: Performance (NFR-005) or maintenance issues arise.
 
 ### D-007: Storage formats: Parquet, JSONL, SQLite
-- Status: PROPOSED
+- Status: ACCEPTED
 - Date: 2026-10-28
 - Context: Need columnar analytics storage, append-only logs, and a small transactional registry without running servers.
 - Decision (proposed): Parquet for clean/features; gzip JSONL for raw, ledger, LLM logs; SQLite for the experiment registry.

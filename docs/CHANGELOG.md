@@ -6,7 +6,13 @@
 
 ## [Unreleased]
 
-(Add entries here as tasks complete.)
+### Added
+- Repo skeleton per AGENTS §4: `src/atr/` subpackages, `config/`, `tests/fixtures/`, `data/`, `reports/`; `.gitignore` (ignores `data/`, `reports/`, `.env`); `.env.example` with placeholder names only; project `README.md`. [T-1.1]
+- `pyproject.toml`: package `atr` (src layout), `requires-python >=3.11,<3.15`, runtime deps (pandas, numpy, pyarrow, pydantic v2, pyyaml, httpx), dev extras (pytest, hypothesis, ruff, mypy), pytest markers, ruff (line length 100) and mypy (strict) config. [T-1.2]
+- `requirements.lock`: fully pinned dependency set generated from a clean `pip install -e ".[dev]"`. [T-1.2]
+
+### Decisions
+- Accepted: D-006 (Python >=3.11,<3.15 and core library set), D-007 (storage formats Parquet/JSONL/SQLite). [T-1.2]
 
 ## [0.0.1] - 2026-10-28
 

@@ -22,8 +22,8 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 
 | ID | Task | Depends on | Done when | Status |
 |----|------|-----------|-----------|--------|
-| T-1.1 | Create repo skeleton per AGENTS §4: folders, `.gitignore` (data/, reports/, .env), `.env.example` with placeholder names only, place docs under `docs/` | - | Tree matches AGENTS §4; `.env` ignored; no secrets present | TODO |
-| T-1.2 | `pyproject.toml`: Python >=3.11, package `atr` in `src/`, runtime deps (pandas, numpy, pyarrow, pydantic v2, pyyaml, httpx) and dev deps (pytest, hypothesis, ruff, mypy); lockfile or pinned versions; add D-006/D-007 confirmation to DECISIONS | T-1.1 | `pip install -e ".[dev]"` works in a clean venv; versions pinned | TODO |
+| T-1.1 | Create repo skeleton per AGENTS §4: folders, `.gitignore` (data/, reports/, .env), `.env.example` with placeholder names only, place docs under `docs/` | - | Tree matches AGENTS §4; `.env` ignored; no secrets present | DONE |
+| T-1.2 | `pyproject.toml`: Python >=3.11, package `atr` in `src/`, runtime deps (pandas, numpy, pyarrow, pydantic v2, pyyaml, httpx) and dev deps (pytest, hypothesis, ruff, mypy); lockfile or pinned versions; add D-006/D-007 confirmation to DECISIONS | T-1.1 | `pip install -e ".[dev]"` works in a clean venv; versions pinned | DONE |
 | T-1.3 | `Makefile` with `check`, `test`, `lint`, `typecheck`; tool configs (ruff line length 100, mypy strict for `src/`, pytest markers `network`, `llm`, `slow`) | T-1.2 | `make check` runs and passes on the empty skeleton; marked tests excluded | TODO |
 | T-1.4 | CLI skeleton `atr` (`--help`, `version`) using stdlib `argparse` or a documented choice | T-1.3 | `atr --help` works; test covers it | TODO |
 | T-1.5 | Import-rule test (INV-13) encoding ARCHITECTURE §3 table | T-1.3 | Test passes; a deliberately violating import in a temp module makes it fail | TODO |
