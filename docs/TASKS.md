@@ -3,8 +3,8 @@
 > Doc version: 1.0.0 | Status: ACTIVE | Last updated: 2026-10-28
 > Work order for AI coding agents and humans. Rules: `AGENTS.md` §6 (workflow) and §10 (Definition of Done).
 
-**Current phase:** 1 (Foundation)
-**Next task:** T-1.1
+**Current phase:** 2 (Data pipeline) — Phase 1 (Foundation) complete, gate G1 passed [T-1.11].
+**Next task:** T-2.1 (BLOCKED on OQ-1, OQ-2, OQ-7 / D-004).
 
 ## How to use
 
@@ -31,8 +31,8 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 | T-1.7 | `common`: error hierarchy (ARCHITECTURE §8), UTC time utils (ms <-> aware datetime, interval map), hashing (canonical JSON, SHA-256), id generation, JSON logging with `run_id` and secret redaction | T-1.3 | Unit tests incl. naive datetime rejected, redaction works, hashing stable | DONE |
 | T-1.8 | `config`: pydantic models for DATA_SPEC §10, YAML loader, env-secret access, unknown-key rejection, effective-config hash; create `config/default.yaml` | T-1.7 | INV-14 passes; secrets never appear in effective-config dump | DONE |
 | T-1.9 | Secrets scan test (INV-12) over repo files and captured log output | T-1.8 | Test passes; planted fake key is detected | DONE |
-| T-1.10 | Run manifest writer (ARCHITECTURE §6, FR-RPR-001) incl. git sha and dirty-tree detection | T-1.7, T-1.8 | Manifest written with all fields; dirty tree sets flag | TODO |
-| T-1.11 | **GATE G1** verification | T-1.1..T-1.10 | All G1 criteria in TEST_PLAN §10 satisfied; results noted in CHANGELOG | TODO |
+| T-1.10 | Run manifest writer (ARCHITECTURE §6, FR-RPR-001) incl. git sha and dirty-tree detection | T-1.7, T-1.8 | Manifest written with all fields; dirty tree sets flag | DONE |
+| T-1.11 | **GATE G1** verification | T-1.1..T-1.10 | All G1 criteria in TEST_PLAN §10 satisfied; results noted in CHANGELOG | DONE |
 
 ## Phase 2: Data pipeline (gate G2)
 

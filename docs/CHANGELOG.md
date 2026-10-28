@@ -18,6 +18,17 @@
 - `atr.common` foundation (T-1.7): `errors.py` (ARCHITECTURE §8 hierarchy with stable `code`s), `time.py` (UTC ms<->aware-datetime with naive rejection, fixed interval map), `hashing.py` (canonical JSON + SHA-256, file hashing), `ids.py` (stdlib ULID + UUIDv4 run ids, seedable), `logging.py` (JSON-lines formatter with `run_id` and key-name secret redaction). Tests: `tests/test_common_*.py`. [T-1.7]
 - `atr.config` (T-1.8): pydantic v2 models mirroring DATA_SPEC §10 (`extra="forbid"` -> unknown keys are errors, INV-14), YAML loader, env-secret access by name, effective-config SHA-256 hash; `config/default.yaml`. Tests: `tests/test_config.py`. [T-1.8]
 - Secrets scan test (INV-12) `tests/test_secrets_scan.py`: scans repo files and captured log output for key-like patterns, with a planted-fake-key canary. [T-1.9]
+- `atr.storage` run manifest (T-1.10): `RunManifest` model (ARCHITECTURE §6 / FR-RPR-001), `build_manifest` with git-sha + dirty-tree detection, dependency-lock hash, data-manifest hash, and `write_manifest` to `reports/{run_id}/run_manifest.json`; `dirty_tree=True` marks a run `NON_REPRODUCIBLE`. Tests: `tests/test_storage_manifest.py`. [T-1.10]
+
+### Evidence
+- **Gate G1 (Foundation) PASSED** [T-1.11]. Verified criteria (TEST_PLAN §10):
+  - Repo skeleton matches AGENTS §4: all 12 `src/atr/` subpackages present, `config/`, `tests/`, `data/`, `reports/`, docs under `docs/`.
+  - `make check` green in a clean environment: fresh `python -m venv .venv-clean` + `pip install -e ".[dev]"` -> ruff + `ruff format --check` + `mypy --strict src/` (13 files) + pytest **119 passed**, exit 0.
+  - Config loads and fails on bad input: `tests/test_config.py` (INV-14); unknown top-level/nested keys and out-of-range values rejected (exit non-zero at load).
+  - Import rules test present and passing: `tests/test_import_rules.py` (INV-13), 19 tests incl. violation canary.
+  - Secrets scan present and passing: `tests/test_secrets_scan.py` (INV-12), 7 tests incl. planted-fake-key canary.
+  - Docs cross-reference check passes: `make docs-check` -> OK.
+  - CI-equivalent command documented: `make check` in `AGENTS.md` §5, §6, §10 and `README.md`.
 
 ### Changed
 - Documented `mingw32-make` as the Windows equivalent of `make` in `AGENTS.md` §5 and `README.md`. [T-1.3]
