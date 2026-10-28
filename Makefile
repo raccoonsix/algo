@@ -14,7 +14,7 @@ help:
 	@echo "  make test       - pytest only (excludes network/llm/slow)"
 	@echo "  make lint       - ruff check + ruff format --check"
 	@echo "  make typecheck  - mypy --strict on src/"
-	@echo "  make docs-check - verify doc cross-reference IDs exist [planned: T-1.6]"
+	@echo "  make docs-check - verify doc cross-reference IDs exist"
 	@echo "  make clean      - remove caches/artifacts"
 
 check: lint typecheck test
@@ -30,9 +30,9 @@ lint:
 typecheck:
 	$(PYTHON) -m mypy --strict src/
 
-# Placeholder until T-1.6 implements the real cross-reference checker.
+# Verifies every cross-reference ID resolves to its source document (T-1.6).
 docs-check:
-	@echo "docs-check: not implemented yet [planned: T-1.6]"
+	$(PYTHON) scripts/docs_check.py
 
 clean:
 	$(PYTHON) -c "import shutil,glob,os; [shutil.rmtree(p,ignore_errors=True) for p in glob.glob('**/__pycache__',recursive=True)+['.pytest_cache','.mypy_cache','.ruff_cache','.hypothesis']]"

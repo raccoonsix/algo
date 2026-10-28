@@ -27,7 +27,7 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 | T-1.3 | `Makefile` with `check`, `test`, `lint`, `typecheck`; tool configs (ruff line length 100, mypy strict for `src/`, pytest markers `network`, `llm`, `slow`) | T-1.2 | `make check` runs and passes on the empty skeleton; marked tests excluded | DONE |
 | T-1.4 | CLI skeleton `atr` (`--help`, `version`) using stdlib `argparse` or a documented choice | T-1.3 | `atr --help` works; test covers it | DONE |
 | T-1.5 | Import-rule test (INV-13) encoding ARCHITECTURE §3 table | T-1.3 | Test passes; a deliberately violating import in a temp module makes it fail | DONE |
-| T-1.6 | `docs-check` script: verify every referenced ID (`FR-*`, `DV-*`, `F-*`, `D-*`, `T-*`, `INV-*`, `TC-*`, `LK-*`) exists in its source doc | T-1.3 | `make docs-check` passes; fails on a planted bad reference | TODO |
+| T-1.6 | `docs-check` script: verify every referenced ID (`FR-*`, `DV-*`, `F-*`, `D-*`, `T-*`, `INV-*`, `TC-*`, `LK-*`) exists in its source doc | T-1.3 | `make docs-check` passes; fails on a planted bad reference | DONE |
 | T-1.7 | `common`: error hierarchy (ARCHITECTURE §8), UTC time utils (ms <-> aware datetime, interval map), hashing (canonical JSON, SHA-256), id generation, JSON logging with `run_id` and secret redaction | T-1.3 | Unit tests incl. naive datetime rejected, redaction works, hashing stable | TODO |
 | T-1.8 | `config`: pydantic models for DATA_SPEC §10, YAML loader, env-secret access, unknown-key rejection, effective-config hash; create `config/default.yaml` | T-1.7 | INV-14 passes; secrets never appear in effective-config dump | TODO |
 | T-1.9 | Secrets scan test (INV-12) over repo files and captured log output | T-1.8 | Test passes; planted fake key is detected | TODO |
