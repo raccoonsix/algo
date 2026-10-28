@@ -15,6 +15,7 @@
 - CLI skeleton `src/atr/cli.py` (`atr --help`, `atr --version` via stdlib `argparse`) wired to the `atr` console script; tests in `tests/test_cli.py`. [T-1.4]
 - Import-rule test (INV-13) `tests/test_import_rules.py`: AST scan enforcing the ARCHITECTURE §3 dependency table, with a negative canary proving the guard fails on a violating import. [T-1.5]
 - `scripts/docs_check.py` and `make docs-check` (T-1.6): verify every cross-reference ID resolves to its authoritative document (AGENTS §3), with range-expansion and a negative canary; tests in `tests/test_docs_check.py`. [T-1.6]
+- `atr.common` foundation (T-1.7): `errors.py` (ARCHITECTURE §8 hierarchy with stable `code`s), `time.py` (UTC ms<->aware-datetime with naive rejection, fixed interval map), `hashing.py` (canonical JSON + SHA-256, file hashing), `ids.py` (stdlib ULID + UUIDv4 run ids, seedable), `logging.py` (JSON-lines formatter with `run_id` and key-name secret redaction). Tests: `tests/test_common_*.py`. [T-1.7]
 
 ### Changed
 - Documented `mingw32-make` as the Windows equivalent of `make` in `AGENTS.md` §5 and `README.md`. [T-1.3]
