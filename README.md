@@ -98,6 +98,9 @@ make check                # ruff + mypy + pytest; [planned: T-1.3]
 atr --help                # CLI entry [planned: T-1.4]
 ```
 
+> Windows note: if `make` is not installed, use `mingw32-make` (same Makefile),
+> e.g. `mingw32-make check`. Any GNU Make reads this Makefile unchanged.
+
 ## Configuration and secrets
 
 - Configuration lives in `config/*.yaml`, validated by pydantic at startup

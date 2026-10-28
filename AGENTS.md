@@ -106,6 +106,9 @@ make docs-check                # verifies doc cross-reference IDs exist [planned
 atr --help                     # CLI entry [planned: T-1.4]
 ```
 
+On Windows, if `make` is unavailable, `mingw32-make` (or any GNU Make) runs the
+same Makefile; substitute it for `make` in the commands above.
+
 ---
 
 ## 6. Workflow for every task
