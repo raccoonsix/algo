@@ -287,6 +287,11 @@ evaluation:
 paper:
   min_days: 30                  # for E4 label; 90 before any v2 discussion
   cycle_delay_s: 5              # wait after bar close before acting
+ai:                             # pre-LLM gate + output validators (AI_SPEC §3, §6)
+  min_required_fields: 0        # count of required packet fields that must be non-null; missing beyond this => INSUFFICIENT_DATA
+  number_rel_tol: 1.0e-6        # V4: relative tolerance for grounded numbers (AI_SPEC §6)
+  min_evidence_refs: 3          # V6: min distinct evidence IDs when status == OK
+  cutoff_margin_days: 90        # LK-2: safety margin after llm.knowledge_cutoff_date
 llm:
   provider: deepseek
   base_url_env: LLM_BASE_URL    # env var name, not the value
@@ -299,6 +304,7 @@ llm:
   max_calls_per_run: 20
   timeout_s: 60
   max_retries: 3
+  contract_retry: 1             # AI_SPEC §2: single optional re-ask on contract failure
 ```
 
 ## 11. Retention and versioning

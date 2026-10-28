@@ -25,6 +25,8 @@
 | D-014 | Statistical evaluation: walk-forward, block bootstrap, deflated Sharpe, trial registry | ACCEPTED |
 | D-015 | Evidence Ladder E0..E4 governs allowed claims | ACCEPTED |
 | D-016 | Hypotheses must be pre-registered by a human with an economic rationale | ACCEPTED |
+| D-017 | Config blocks: add `ai:` section and `llm.contract_retry` to match AI_SPEC | ACCEPTED |
+| D-018 | Dev dependency: add `types-PyYAML` type stubs for `mypy --strict` | ACCEPTED |
 
 ## Entry template
 
@@ -184,3 +186,21 @@
 - Alternatives considered: Free exploration (rejected: multiple-testing risk).
 - Consequences: Slower exploration, higher credibility.
 - Revisit when: A formal exploratory-research track is added (with its own evidence cap of E1).
+
+### D-017: Config blocks: add `ai:` section and `llm.contract_retry` to match AI_SPEC
+- Status: ACCEPTED
+- Date: 2026-10-28
+- Context: AI_SPEC §2/§3/§6 and LK-2 reference configuration keys (`ai.min_required_fields`, `ai.number_rel_tol`, `ai.min_evidence_refs`, `ai.cutoff_margin_days`, `llm.contract_retry`) that DATA_SPEC §10 did not define. Because the config loader rejects unknown keys (ARCHITECTURE §7, INV-14), the AI layer could not be configured without this gap being closed.
+- Decision: Add an `ai:` block and `llm.contract_retry` to DATA_SPEC §10 with defaults from AI_SPEC: `number_rel_tol=1.0e-6`, `min_evidence_refs=3`, `cutoff_margin_days=90`, `contract_retry=1`. `ai.min_required_fields` defaults to `0` (no required-field count enforced) as the neutral start; the owner may raise it when the packet schema is final.
+- Alternatives considered: Keeping these as code constants (rejected: violates "config over constants", AGENTS §7); omitting them until T-4 (rejected: T-1.8 must model the full config to be tested with INV-14).
+- Consequences: Config is now the single source for AI-layer thresholds; no behavior is specified or changed by this entry.
+- Revisit when: The market-summary packet schema is finalized (T-3.6) and `min_required_fields` can be set to a concrete value.
+
+### D-018: Dev dependency: add `types-PyYAML` type stubs for `mypy --strict`
+- Status: ACCEPTED
+- Date: 2026-10-28
+- Context: D-006 accepts PyYAML as a runtime dependency. `mypy --strict` (AGENTS §7) reports `Library stubs not installed for "yaml"` because PyYAML ships without inline type information.
+- Decision: Add `types-PyYAML` (pinned) to the `dev` extra only. It is a type-stub package (no runtime effect), needed to keep `src/` mypy-strict clean.
+- Alternatives considered: a per-import `# type: ignore[import-untyped]` (rejected: suppresses type checking of the yaml API surface); wrapping yaml in an untyped shim (rejected: extra code).
+- Consequences: Dev environment installs one extra stub package; runtime dependency set is unchanged. Regenerate `requirements.lock` (R-13 bookkeeping).
+- Revisit when: PyYAML ships inline types, or YAML use is replaced.

@@ -1,0 +1,70 @@
+# config/default.yaml — see docs/DATA_SPEC.md §10.
+# All values [PROPOSED] unless noted. Unknown keys are errors (INV-14).
+# No secrets here: env var *names* only.
+
+project:
+  env: dev
+  seed: 42
+
+data:
+  source: exchange_x            # OPEN: D-004
+  symbol: BTCUSDT               # PROPOSED: D-003
+  interval: 1h                  # PROPOSED: D-003
+  start_utc: "2023-01-01T00:00:00Z"
+  end_utc: null                 # null = up to latest closed bar
+
+ingestion:
+  page_limit: 1000              # verify against exchange docs
+  requests_per_minute: 600      # verify against exchange docs
+  max_retries: 5
+  timeout_s: 15
+
+validation:
+  gap_max_bars: 3
+  gap_max_fraction: 0.001
+  outlier_ret_warn: 0.15
+  outlier_ret_fail: 0.50
+  zero_volume_warn_fraction: 0.01
+  stale_after_bars: 2
+  clock_skew_warn_ms: 2000
+  clock_skew_fail_ms: 10000
+
+features:
+  feature_set_version: v1
+  params: {ret_n: 24, sma_n: 24, ema_n: 24, rvol_n: 24, rsi_n: 14, atr_n: 14, vol_z_n: 24, dd_n: 168}
+
+backtest:
+  holdout_fraction: 0.20        # chronological, last segment
+  walk_forward: {train_bars: 4320, test_bars: 720, step_bars: 720, purge_bars: 24, embargo_bars: 24}
+  costs: {fee_bps_per_side: 10, slippage_bps: 5, stress_multipliers: [1, 2, 3]}   # OQ-3
+  initial_capital_quote: 10000
+  monte_carlo_baseline_runs: 1000
+
+evaluation:
+  bootstrap: {method: block, block_len_bars: 24, resamples: 2000}
+  min_trades: 100
+  dsr_min_probability: 0.95
+
+paper:
+  min_days: 30                  # for E4 label; 90 before any v2 discussion
+  cycle_delay_s: 5              # wait after bar close before acting
+
+ai:                             # pre-LLM gate + output validators (AI_SPEC §3, §6; D-017)
+  min_required_fields: 0
+  number_rel_tol: 1.0e-6
+  min_evidence_refs: 3
+  cutoff_margin_days: 90
+
+llm:
+  provider: deepseek
+  base_url_env: LLM_BASE_URL    # env var name, not the value
+  api_key_env: LLM_API_KEY      # env var name, not the value
+  model_id: null                # OPEN: D-005 / OQ-4. Must be set by owner; null => AI layer disabled
+  knowledge_cutoff_date: null   # OPEN: OQ-4. null => LLM historical evaluation disabled (LK-2)
+  historical_eval_enabled: false
+  temperature: 0.0
+  max_tokens: 4000
+  max_calls_per_run: 20
+  timeout_s: 60
+  max_retries: 3
+  contract_retry: 1             # AI_SPEC §2: single optional re-ask on contract failure
