@@ -13,6 +13,7 @@
 - `Makefile` with `check`, `test`, `lint`, `typecheck`, `docs-check` (placeholder for T-1.6), `clean`; portable `python -m` invocations. `make check` = ruff + ruff format --check + mypy --strict + pytest (excluding `network`/`llm`/`slow`). [T-1.3]
 - `src/atr/__init__.py` (package init) and `tests/test_smoke.py` so `make check` runs against a collectable suite. [T-1.3]
 - CLI skeleton `src/atr/cli.py` (`atr --help`, `atr --version` via stdlib `argparse`) wired to the `atr` console script; tests in `tests/test_cli.py`. [T-1.4]
+- Import-rule test (INV-13) `tests/test_import_rules.py`: AST scan enforcing the ARCHITECTURE §3 dependency table, with a negative canary proving the guard fails on a violating import. [T-1.5]
 
 ### Changed
 - Documented `mingw32-make` as the Windows equivalent of `make` in `AGENTS.md` §5 and `README.md`. [T-1.3]
