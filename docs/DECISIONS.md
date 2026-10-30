@@ -11,8 +11,8 @@
 |----|-------|--------|
 | D-001 | Research and simulation only; no real-money execution | ACCEPTED |
 | D-002 | LLM is an interpreter, not a signal source; historical backtests are deterministic | ACCEPTED |
-| D-003 | Initial market scope: one liquid spot pair, 1h primary, 15m secondary | PROPOSED |
-| D-004 | Data source: one exchange via public REST market data | OPEN |
+| D-003 | Initial market scope: one liquid spot pair, 1h primary, 15m secondary | ACCEPTED |
+| D-004 | Data source: one exchange via public REST market data (Bitget) | ACCEPTED |
 | D-005 | LLM: DeepSeek V4.1 Flash behind `LLMClient`, model ID from config | PROPOSED |
 | D-006 | Python >= 3.11 and core library set | ACCEPTED |
 | D-007 | Storage formats: Parquet, JSONL, SQLite | ACCEPTED |
@@ -62,22 +62,33 @@
 - Revisit when: Sufficient forward (E4-style) evidence for an LLM-involved component exists.
 
 ### D-003: Initial market scope: one liquid spot pair, 1h primary, 15m secondary
-- Status: PROPOSED
+- Status: ACCEPTED
 - Date: 2026-10-28
 - Context: The brief says crypto intraday but names no pair or interval. Narrow scope reduces survivorship/selection bias and engineering effort. Higher frequency makes fees dominant.
-- Decision (proposed): `BTCUSDT` spot, `1h` primary, `15m` secondary. Selection reason (liquidity) recorded in advance to limit selection bias.
-- Alternatives considered: Multi-pair universe (more testing, more selection risk); `1m` bars (cost and noise dominated).
-- Consequences: Results apply only to this pair/interval; generalization is not claimed.
-- Revisit when: Owner answers OQ-2.
+- Decision: `SOLUSDT` spot, `1h` primary, `15m` secondary. Owner selected SOL (alt) over BTC to explore a more volatile, less crowded instrument for future work. This resolves the earlier PRD §5/`BTCUSDT` inconsistency: the single symbol is `SOLUSDT`. Selection reason (liquidity of a major alt pair) recorded in advance to limit selection bias.
+- Alternatives considered: `BTCUSDT` (higher liquidity, lower volatility; the original default); multi-pair universe (more testing, more selection risk); `1m` bars (cost and noise dominated).
+- Consequences: Results apply only to this pair/interval; generalization is not claimed. Alts carry higher volatility and possible thinner liquidity than BTC; cost/slippage assumptions matter more (OQ-3).
+- Revisit when: Owner answers OQ-2 differently or wishes to add pairs/intervals.
 
-### D-004: Data source: one exchange via public REST market data
-- Status: OPEN
+### D-004: Data source: one exchange via public REST market data (Bitget)
+- Status: ACCEPTED
 - Date: 2026-10-28
-- Context: Availability and terms depend on the owner's location and the exchange's license. Exchange field names and limits must be read from current official docs.
-- Decision: Owner chooses (OQ-1, OQ-7). Implement behind `ExchangeClient`. Record doc URLs and verification date here when chosen.
-- Alternatives considered: Licensed historical datasets; multiple exchanges (deferred, NG-6).
-- Consequences: T-2.1 is blocked until decided.
-- Revisit when: Exchange API or terms change.
+- Context: Availability and terms depend on the owner's location and the exchange's license. Exchange field names and limits must be read from current official docs. Binance was the first preference but its API could not be reached from the development environment; the owner selected Bitget instead.
+- Decision: **Bitget** public REST market data (spot, "Classic" account API). Implemented behind the `ExchangeClient` interface.
+  - Base URL: `https://api.bitget.com` (env override: `EXCHANGE_API_BASE`, ARCHITECTURE §7).
+  - **Verified facts** (source: official Bitget API docs, classic spot market; retrieved 2026-10-28):
+    - Recent candles: `GET /api/v2/spot/market/candles`.
+    - History candles (older ranges): `GET /api/v2/spot/market/history-candles`.
+    - Query params: `symbol` (string, required, e.g. `SOLUSDT`); `granularity` (string, required); `startTime` (string, Unix ms, optional); `endTime` (string, Unix ms, optional); `limit` (string, default `100`, max `1000`).
+    - `granularity` values: `1min,3min,5min,15min,30min`; `1h,4h,6h,12h`; `1day,3day`; `1week`; `1M`; UTC-anchored variants `6Hutc,12Hutc,1Dutc,3Dutc,1Wutc,1Mutc`.
+    - Response envelope: `{ "code": "00000", "msg": "success", "requestTime": <int>, "data": [ ... ] }`.
+    - Each candle in `data` is an array of strings: `[timestamp, open, high, low, close, base volume, USDT volume, quote volume]`.
+    - Frequency limit: 20 times/1s per IP.
+  - Doc URL(s): spot market catalog — `https://www.bitget.com/docs/catalog/classic-spot-market/classic-spot-market` (sections "Get Candlestick Data", "Get History Candlestick Data").
+  - OQ-7 (license/terms) confirmation pending.
+- Alternatives considered: Binance (preferred but unreachable from the dev environment); Bybit (fallback); licensed historical datasets; multiple exchanges (deferred, NG-6).
+- Consequences: T-2.1 can be implemented against the verified facts above. Field names/limits MUST be re-verified if Bitget's docs change.
+- Revisit when: Bitget API or terms change, or the source is switched.
 
 ### D-005: LLM: DeepSeek V4.1 Flash behind `LLMClient`, model ID from config
 - Status: PROPOSED

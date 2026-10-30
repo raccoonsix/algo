@@ -50,10 +50,10 @@ def test_formatter_emits_json_with_run_id() -> None:
 def test_formatter_redacts_extra_fields() -> None:
     fmt = atr_logging.JsonFormatter(run_id="RUN1")
     record = logging.LogRecord("atr", logging.INFO, __file__, 1, "msg", (), None)
-    record.extra_fields = {"api_key": "leak", "symbol": "BTCUSDT"}  # type: ignore[attr-defined]
+    record.extra_fields = {"api_key": "leak", "symbol": "SOLUSDT"}  # type: ignore[attr-defined]
     parsed = json.loads(fmt.format(record))
     assert parsed["api_key"] == atr_logging.REDACTED
-    assert parsed["symbol"] == "BTCUSDT"
+    assert parsed["symbol"] == "SOLUSDT"
 
 
 def test_formatter_without_run_id_omits_field() -> None:

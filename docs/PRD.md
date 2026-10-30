@@ -45,11 +45,11 @@ Most retail "AI trading" projects fail because of: unvalidated data, look-ahead 
 
 | Item | v1 value | Status |
 |------|----------|--------|
-| Market | Crypto spot | PROPOSED (D-003) |
-| Instrument | One pair, default `SOLUSDT` | PROPOSED (D-003) |
-| Bar intervals | `1h` primary, `15m` secondary | PROPOSED (D-003) |
+| Market | Crypto spot | ACCEPTED (D-003) |
+| Instrument | One pair, default `SOLUSDT` | ACCEPTED (D-003) |
+| Bar intervals | `1h` primary, `15m` secondary | ACCEPTED (D-003) |
 | Positions | Long/Short, with 20x leverage and isolated | PROPOSED (D-009) |
-| Data source | One exchange via public REST market data | OPEN (D-004) |
+| Data source | One exchange via public REST market data (Bitget) | ACCEPTED (D-004) |
 | LLM | DeepSeek V4.1 Flash via OpenAI-compatible interface, model ID from config | PROPOSED (D-005) |
 | Execution | Backtest + paper only | ACCEPTED (D-001) |
 
@@ -231,6 +231,8 @@ A phase is not complete because code ran once; its gate must pass.
 | OQ-5 | Owner's max tolerable drawdown (for reporting thresholds)? | T-5.12 |
 | OQ-6 | Compute environment and monthly LLM budget? | T-4.2 |
 | OQ-7 | Data source license/terms confirmed? | T-2.1 |
+
+**Resolved:** OQ-1 = Bitget public REST (D-004); OQ-2 = `SOLUSDT`, `1h` primary / `15m` secondary (D-003). **Still open:** OQ-3..OQ-6 and OQ-7 (Bitget terms confirmation).
 
 ## 13. Glossary
 

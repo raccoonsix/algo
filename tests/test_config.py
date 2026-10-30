@@ -17,6 +17,7 @@ from atr.config import (
     DEFAULT_CONFIG_PATH,
     AtrConfig,
     config_hash,
+    exchange_api_base,
     get_secret,
     llm_api_key,
     llm_base_url,
@@ -32,7 +33,8 @@ def test_default_config_file_exists_and_loads() -> None:
     config = load_config(_REPO_ROOT / DEFAULT_CONFIG_PATH)
     assert isinstance(config, AtrConfig)
     assert config.project.seed == 42
-    assert config.data.symbol == "BTCUSDT"
+    assert config.data.source == "bitget"
+    assert config.data.symbol == "SOLUSDT"
     assert config.data.interval == "1h"
 
 
@@ -142,3 +144,10 @@ def test_llm_helpers_use_configured_env_names(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setenv(config.llm.base_url_env, "https://example.test")
     assert llm_api_key(config) == "k"
     assert llm_base_url(config) == "https://example.test"
+
+
+def test_exchange_api_base_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("EXCHANGE_API_BASE", raising=False)
+    assert exchange_api_base() is None
+    monkeypatch.setenv("EXCHANGE_API_BASE", "https://api.bitget.com")
+    assert exchange_api_base() == "https://api.bitget.com"

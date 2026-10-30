@@ -108,3 +108,16 @@ def llm_api_key(config: AtrConfig, *, required: bool = False) -> str | None:
 def llm_base_url(config: AtrConfig, *, required: bool = False) -> str | None:
     """Return the LLM base URL from the env var named by ``config.llm.base_url_env``."""
     return get_secret(config.llm.base_url_env, required=required)
+
+
+# ARCHITECTURE §7: optional exchange base override, env-only (not a config key).
+EXCHANGE_API_BASE_ENV = "EXCHANGE_API_BASE"
+
+
+def exchange_api_base(*, required: bool = False) -> str | None:
+    """Return the optional exchange base URL override from the environment.
+
+    Not a secret (a URL). Defaults to ``None`` so the adapter uses its own
+    documented base URL when unset (ARCHITECTURE §7).
+    """
+    return get_secret(EXCHANGE_API_BASE_ENV, required=required)

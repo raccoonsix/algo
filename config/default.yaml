@@ -7,8 +7,8 @@ project:
   seed: 42
 
 data:
-  source: exchange_x            # OPEN: D-004
-  symbol: BTCUSDT               # PROPOSED: D-003
+  source: bitget                # CONFIRMED: D-004 (owner choice, T-2.1)
+  symbol: SOLUSDT               # CONFIRMED: D-003 (owner choice, T-2.1)
   interval: 1h                  # PROPOSED: D-003
   start_utc: "2023-01-01T00:00:00Z"
   end_utc: null                 # null = up to latest closed bar

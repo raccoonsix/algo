@@ -74,7 +74,7 @@ Everything the model may use is in the packet. IDs let the model cite evidence.
   "packet_id": "ULID",
   "task_id": "market_summary",
   "as_of_utc": "2026-10-28T12:00:00Z",
-  "context": {"symbol": "BTCUSDT", "interval": "1h", "source": "exchange_x"},
+  "context": {"symbol": "SOLUSDT", "interval": "1h", "source": "exchange_x"},
   "data_health": {
     "status": "PASS",
     "last_closed_bar_open_utc": "2026-10-28T10:00:00Z",

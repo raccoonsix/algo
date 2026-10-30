@@ -13,7 +13,7 @@
 - **Bar identity:** `(source, symbol, interval, open_time_ms)` is unique.
 - **Numeric type:** `float64` for prices/volumes in clean layer. Raw layer keeps exchange values untouched (strings as received).
 - **Missing values:** explicit `null` (NaN in pandas). Never filled with zeros or forward-fill silently (FR-FEAT-004).
-- **Names:** `snake_case`. Symbols uppercase without separators (`BTCUSDT`) internally; adapter maps to exchange format.
+- **Names:** `snake_case`. Symbols uppercase without separators (`SOLUSDT`) internally; adapter maps to exchange format.
 - **Intervals:** supported set `1m, 5m, 15m, 1h, 4h, 1d`. `interval_ms` derived from a fixed map, never parsed ad hoc.
 - **Hashing:** SHA-256 over canonical bytes (UTF-8 JSON with sorted keys, no whitespace; parquet files hashed by bytes).
 
@@ -21,8 +21,8 @@
 
 | Column | Type | Unit | Description |
 |--------|------|------|-------------|
-| `source` | str | - | Data source id, e.g. `exchange_x` |
-| `symbol` | str | - | e.g. `BTCUSDT` |
+| `source` | str | - | Data source id, e.g. `bitget` |
+| `symbol` | str | - | e.g. `SOLUSDT` |
 | `interval` | str | - | e.g. `1h` |
 | `open_time_ms` | int64 | ms UTC | Bar start (inclusive) |
 | `close_time_ms` | int64 | ms UTC | `open_time_ms + interval_ms - 1` |
@@ -107,9 +107,9 @@ Run on every batch before promotion to `clean` (FR-DATA-005). Thresholds come fr
 ```json
 {
   "batch_id": "ULID",
-  "source": "exchange_x",
+  "source": "bitget",
   "endpoint": "documented path",
-  "symbol": "BTCUSDT",
+  "symbol": "SOLUSDT",
   "interval": "1h",
   "requested_range_ms": [1700000000000, 1710000000000],
   "fetched_at_ms": 1710000100000,
@@ -209,7 +209,7 @@ CREATE TABLE llm_calls (
   "ts_utc_ms": 1710000100000,
   "run_id": "...",
   "cycle_bar_open_time_ms": 1710000000000,
-  "symbol": "BTCUSDT",
+  "symbol": "SOLUSDT",
   "interval": "1h",
   "inputs_hash": "sha256 of feature row + data manifest hash",
   "data_status": "PASS",
@@ -252,8 +252,8 @@ project:
   env: dev
   seed: 42
 data:
-  source: exchange_x            # OPEN: D-004
-  symbol: BTCUSDT               # PROPOSED: D-003
+  source: bitget                # ACCEPTED: D-004
+  symbol: SOLUSDT               # CONFIRMED: D-003
   interval: 1h                  # PROPOSED: D-003
   start_utc: "2023-01-01T00:00:00Z"
   end_utc: null                 # null = up to latest closed bar

@@ -32,3 +32,6 @@ htmlcov/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local tooling artifacts not part of this project (e.g. MCP bundles used elsewhere)
+*.mcpb

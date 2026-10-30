@@ -5,7 +5,9 @@ May import `common` only (ARCHITECTURE §3).
 
 from atr.config.loader import (
     DEFAULT_CONFIG_PATH,
+    EXCHANGE_API_BASE_ENV,
     config_hash,
+    exchange_api_base,
     get_secret,
     llm_api_key,
     llm_base_url,
@@ -16,8 +18,10 @@ from atr.config.models import AtrConfig
 
 __all__ = [
     "DEFAULT_CONFIG_PATH",
+    "EXCHANGE_API_BASE_ENV",
     "AtrConfig",
     "config_hash",
+    "exchange_api_base",
     "get_secret",
     "llm_api_key",
     "llm_base_url",

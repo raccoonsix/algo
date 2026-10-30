@@ -25,8 +25,8 @@ class ProjectConfig(_StrictModel):
 
 
 class DataConfig(_StrictModel):
-    source: str = "exchange_x"  # OPEN: D-004
-    symbol: str = "BTCUSDT"  # PROPOSED: D-003
+    source: str = "bitget"  # CONFIRMED: D-004
+    symbol: str = "SOLUSDT"  # CONFIRMED: D-003
     interval: str = "1h"  # PROPOSED: D-003
     start_utc: str = "2023-01-01T00:00:00Z"
     end_utc: str | None = None  # null = up to latest closed bar

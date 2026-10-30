@@ -31,12 +31,17 @@
   - CI-equivalent command documented: `make check` in `AGENTS.md` §5, §6, §10 and `README.md`.
 
 ### Changed
+- Symbol changed from `BTCUSDT` to `SOLUSDT` across PRD §5, D-003, DATA_SPEC §10 and examples, AI_SPEC §4 example, `config/default.yaml`, and config models/tests; D-003 promoted to ACCEPTED (resolves the PRD §5/D-003 contradiction). [T-2.1]
+- Data source changed from placeholder `exchange_x` to `bitget` across PRD §5, D-004, DATA_SPEC, and `config/default.yaml`; D-004 promoted to ACCEPTED (owner choice; endpoint details pending verification). Added `EXCHANGE_API_BASE`/`EXCHANGE_API_KEY`/`EXCHANGE_API_SECRET`/`EXCHANGE_API_PASSPHRASE` to `.env.example` and a local gitignored `.env`. [T-2.1]
+- D-004: verified Bitget spot candlestick endpoints (`/api/v2/spot/market/candles`, `/api/v2/spot/market/history-candles`), query params, `granularity` values, response array order `[ts, open, high, low, close, baseVol, usdtVol, quoteVol]`, and rate limit (20/s IP) from official docs; doc URL + verification date recorded. [T-2.1]
 - Documented `mingw32-make` as the Windows equivalent of `make` in `AGENTS.md` §5 and `README.md`. [T-1.3]
 - DATA_SPEC §10: added the `ai:` config block (`min_required_fields`, `number_rel_tol`, `min_evidence_refs`, `cutoff_margin_days`) and `llm.contract_retry`, which AI_SPEC referenced but the config spec omitted (D-017). [T-1.8]
 
 ### Decisions
 - Accepted: D-006 (Python >=3.11,<3.15 and core library set), D-007 (storage formats Parquet/JSONL/SQLite). [T-1.2]
 - Accepted: D-017 (add `ai:` config block and `llm.contract_retry`), D-018 (`types-PyYAML` dev stub for mypy-strict). [T-1.8]
+- Accepted: D-003 (market scope: `SOLUSDT` spot, `1h` primary / `15m` secondary; owner chose an alt pair). [T-2.1]
+- Accepted: D-004 (data source: Bitget public REST market data; endpoint verification pending). [T-2.1]
 
 ## [0.0.1] - 2026-10-28
 

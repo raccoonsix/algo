@@ -108,7 +108,7 @@ def test_scan_text_detects_private_key_block() -> None:
 
 
 def test_scan_text_clean_on_ordinary_text() -> None:
-    assert scan_text("symbol=BTCUSDT interval=1h fee_bps=10") == []
+    assert scan_text("symbol=SOLUSDT interval=1h fee_bps=10") == []
 
 
 def test_repo_files_contain_no_secrets() -> None:
@@ -136,7 +136,7 @@ def test_log_output_contains_no_secret(capsys: pytest.CaptureFixture[str]) -> No
     logger = atr_logging.get_logger("atr.test.secretscan", run_id="RUNX")
     secret = "sk-" + ("B" * 32)
     record = logging.LogRecord("atr", logging.INFO, __file__, 1, "msg", (), None)
-    record.extra_fields = {"api_key": secret, "symbol": "BTCUSDT"}  # type: ignore[attr-defined]
+    record.extra_fields = {"api_key": secret, "symbol": "SOLUSDT"}  # type: ignore[attr-defined]
     handler = next(h for h in logger.handlers if getattr(h, "name", "").startswith("atr-json"))
     handler.emit(record)
     out = capsys.readouterr().err + capsys.readouterr().out
