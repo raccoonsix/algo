@@ -85,7 +85,7 @@
     - Each candle in `data` is an array of strings: `[timestamp, open, high, low, close, base volume, USDT volume, quote volume]`.
     - Frequency limit: 20 times/1s per IP.
   - Doc URL(s): spot market catalog — `https://www.bitget.com/docs/catalog/classic-spot-market/classic-spot-market` (sections "Get Candlestick Data", "Get History Candlestick Data").
-  - OQ-7 (license/terms) confirmation pending.
+  - OQ-7 (license/terms): **confirmed by the owner** — Bitget's terms permit private research/simulation use of public market data, without redistribution. Public market-data endpoints only; no authenticated/trade endpoints (R-01). No API key required for candles.
 - Alternatives considered: Binance (preferred but unreachable from the dev environment); Bybit (fallback); licensed historical datasets; multiple exchanges (deferred, NG-6).
 - Consequences: T-2.1 can be implemented against the verified facts above. Field names/limits MUST be re-verified if Bitget's docs change.
 - Revisit when: Bitget API or terms change, or the source is switched.

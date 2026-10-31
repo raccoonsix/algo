@@ -232,7 +232,7 @@ A phase is not complete because code ran once; its gate must pass.
 | OQ-6 | Compute environment and monthly LLM budget? | T-4.2 |
 | OQ-7 | Data source license/terms confirmed? | T-2.1 |
 
-**Resolved:** OQ-1 = Bitget public REST (D-004); OQ-2 = `SOLUSDT`, `1h` primary / `15m` secondary (D-003). **Still open:** OQ-3..OQ-6 and OQ-7 (Bitget terms confirmation).
+**Resolved:** OQ-1 = Bitget public REST (D-004); OQ-2 = `SOLUSDT`, `1h` primary / `15m` secondary (D-003); OQ-7 = Bitget terms permit private research use of public market data (owner confirmed, D-004). **Still open:** OQ-3..OQ-6.
 
 ## 13. Glossary
 

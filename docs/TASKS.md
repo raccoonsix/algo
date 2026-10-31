@@ -4,7 +4,7 @@
 > Work order for AI coding agents and humans. Rules: `AGENTS.md` §6 (workflow) and §10 (Definition of Done).
 
 **Current phase:** 2 (Data pipeline) — Phase 1 (Foundation) complete, gate G1 passed [T-1.11].
-**Next task:** T-2.1 (Bitget kline endpoints verified in D-004; implementing adapter; OQ-7 terms confirmation still owner-pending).
+**Next task:** T-2.3 (raw layer writer: append-only jsonl.gz per batch) — unblocked.
 
 ## How to use
 
@@ -38,8 +38,8 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 
 | ID | Task | Depends on | Done when | Status |
 |----|------|-----------|-----------|--------|
-| T-2.1 | **[HUMAN]** Confirm OQ-1, OQ-2, OQ-7 and D-004; then implement `ExchangeClient` interface and ONE adapter after reading the exchange's current official docs (endpoints, fields, limits, closed-candle semantics) | T-1.11 | Adapter parses recorded fixture responses into raw rows; doc links and verification date noted in DECISIONS | IN_PROGRESS (Bitget endpoints verified in D-004; OQ-7 terms pending) |
-| T-2.2 | HTTP layer: timeouts, retry with exponential backoff + jitter, `Retry-After`, client-side rate limiter, error mapping to `SourceUnavailableError`/`RateLimitError` | T-2.1 | TC-DATA-017 passes with mocked responses | TODO |
+| T-2.1 | **[HUMAN]** Confirm OQ-1, OQ-2, OQ-7 and D-004; then implement `ExchangeClient` interface and ONE adapter after reading the exchange's current official docs (endpoints, fields, limits, closed-candle semantics) | T-1.11 | Adapter parses recorded fixture responses into raw rows; doc links and verification date noted in DECISIONS | DONE |
+| T-2.2 | HTTP layer: timeouts, retry with exponential backoff + jitter, `Retry-After`, client-side rate limiter, error mapping to `SourceUnavailableError`/`RateLimitError` | T-2.1 | TC-DATA-017 passes with mocked responses | DONE |
 | T-2.3 | Raw layer writer: append-only `jsonl.gz` per batch with request metadata and hash | T-2.1, T-1.7 | Written files never modified; hash recorded | TODO |
 | T-2.4 | Validation framework (Rule protocol, Finding, status aggregation) + DV-001..DV-004 | T-1.7 | TC-DATA tests for DV-001..004 pass | TODO |
 | T-2.5 | DV-005..DV-008 (gaps, OHLC sanity, volume sanity, closed-only) | T-2.4 | TC-DATA tests for DV-005..008 pass incl. gap threshold cases (TC-DATA-022) | TODO |
