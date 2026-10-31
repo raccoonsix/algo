@@ -11,13 +11,16 @@ from atr.ingestion.exchange import (
     RawRow,
 )
 from atr.ingestion.http import HttpClient, RateLimiter
+from atr.ingestion.pipeline import PromotionResult, promote_batch
 
 __all__ = [
     "BitgetClient",
     "ExchangeClient",
     "HttpClient",
+    "PromotionResult",
     "RateLimiter",
     "RawKlinesResponse",
     "RawResponse",
     "RawRow",
+    "promote_batch",
 ]

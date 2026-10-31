@@ -177,3 +177,79 @@ def write_manifest(
         encoding="utf-8",
     )
     return path
+
+
+# --- Batch manifest (DATA_SPEC §6) ------------------------------------------
+
+MANIFESTS_DIR = Path("data") / "manifests"
+
+
+class FindingRecord(BaseModel):
+    """A validation finding as recorded in the batch manifest (DATA_SPEC §6)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    rule: str
+    severity: str
+    detail: str
+    count: int = 0
+
+
+class ValidationSummary(BaseModel):
+    """The validation block of a batch manifest (DATA_SPEC §6)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: str
+    findings: list[FindingRecord] = Field(default_factory=list)
+
+
+class CleanFileRecord(BaseModel):
+    """A clean parquet file referenced by a batch manifest."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
+    sha256: str
+
+
+class BatchManifest(BaseModel):
+    """Batch provenance manifest (DATA_SPEC §6). Unknown keys are errors."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    batch_id: str
+    source: str
+    endpoint: str
+    symbol: str
+    interval: str
+    requested_range_ms: list[int]
+    fetched_at_ms: int
+    rows_received: int
+    rows_promoted: int
+    raw_file: str
+    raw_sha256: str
+    clean_files: list[CleanFileRecord] = Field(default_factory=list)
+    validation: ValidationSummary
+    code_version: str
+    config_hash: str
+
+
+def batch_manifest_path(batch_id: str, *, root: str | Path = MANIFESTS_DIR) -> Path:
+    """Return ``data/manifests/{batch_id}.json``."""
+    return Path(root) / f"{batch_id}.json"
+
+
+def write_batch_manifest(
+    manifest: BatchManifest,
+    *,
+    root: str | Path = MANIFESTS_DIR,
+) -> Path:
+    """Write a :class:`BatchManifest` to ``data/manifests/{batch_id}.json``."""
+    path = batch_manifest_path(manifest.batch_id, root=root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        manifest.model_dump_json(indent=2, exclude_none=False) + "\n",
+        encoding="utf-8",
+    )
+    return path
