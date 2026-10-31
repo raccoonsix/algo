@@ -4,7 +4,7 @@
 > Work order for AI coding agents and humans. Rules: `AGENTS.md` §6 (workflow) and §10 (Definition of Done).
 
 **Current phase:** 2 (Data pipeline) — Phase 1 (Foundation) complete, gate G1 passed [T-1.11].
-**Next task:** T-2.5 (DV-005..DV-008) — unblocked.
+**Next task:** T-2.6 (DV-009..DV-013) — unblocked.
 
 ## How to use
 
@@ -42,7 +42,7 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 | T-2.2 | HTTP layer: timeouts, retry with exponential backoff + jitter, `Retry-After`, client-side rate limiter, error mapping to `SourceUnavailableError`/`RateLimitError` | T-2.1 | TC-DATA-017 passes with mocked responses | DONE |
 | T-2.3 | Raw layer writer: append-only `jsonl.gz` per batch with request metadata and hash | T-2.1, T-1.7 | Written files never modified; hash recorded | DONE |
 | T-2.4 | Validation framework (Rule protocol, Finding, status aggregation) + DV-001..DV-004 | T-1.7 | TC-DATA tests for DV-001..004 pass | DONE |
-| T-2.5 | DV-005..DV-008 (gaps, OHLC sanity, volume sanity, closed-only) | T-2.4 | TC-DATA tests for DV-005..008 pass incl. gap threshold cases (TC-DATA-022) | TODO |
+| T-2.5 | DV-005..DV-008 (gaps, OHLC sanity, volume sanity, closed-only) | T-2.4 | TC-DATA tests for DV-005..008 pass incl. gap threshold cases (TC-DATA-022) | DONE |
 | T-2.6 | DV-009..DV-013 (outliers, zero volume, staleness, clock skew, continuity) | T-2.4 | TC-DATA tests for DV-009..013 pass | TODO |
 | T-2.7 | Clean layer: parquet writer, partitioning, gap reindexing with `is_missing`, quarantine writer with `findings.json`, manifest writer (DATA_SPEC §6) | T-2.3, T-2.6 | INV-04 passes: FAIL data never reaches clean; manifests complete | TODO |
 | T-2.8 | Fetcher: historical range, pagination, closed-bar filter, incremental update, idempotency | T-2.2, T-2.7 | INV-15, TC-DATA-016, 019, 020, 021 pass | TODO |

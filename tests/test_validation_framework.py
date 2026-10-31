@@ -10,6 +10,10 @@ from atr.validation import (
     Dv002StrictlyIncreasing,
     Dv003NoDuplicates,
     Dv004GridAlignment,
+    Dv005Gaps,
+    Dv006OhlcSanity,
+    Dv007VolumeSanity,
+    Dv008ClosedBarsOnly,
     ValidationContext,
     aggregate_status,
     validate,
@@ -165,3 +169,145 @@ def test_validate_does_not_mutate_input() -> None:
 def test_validate_empty_frame_is_pass() -> None:
     report = validate(_good_frame(0), _ctx())
     assert report.status == "PASS"
+
+
+# -- DV-005 gaps -------------------------------------------------------------
+def _frame_with_gap(bars: list[int]) -> pd.DataFrame:
+    """Frame whose open_time_ms are the given bar offsets from base (in hours)."""
+    base = 1_699_920_000_000
+    open_ms = np.array([base + h * _HOUR_MS for h in bars], dtype="int64")
+    n = len(bars)
+    return pd.DataFrame(
+        {
+            "source": pd.array(["bitget"] * n, dtype="object"),
+            "symbol": pd.array(["SOLUSDT"] * n, dtype="object"),
+            "interval": pd.array(["1h"] * n, dtype="object"),
+            "open_time_ms": open_ms,
+            "close_time_ms": open_ms + _HOUR_MS - 1,
+            "open": np.full(n, 1.0),
+            "high": np.full(n, 2.0),
+            "low": np.full(n, 0.5),
+            "close": np.full(n, 1.5),
+            "volume": np.full(n, 100.0),
+            "quote_volume": np.full(n, 150.0),
+            "trades": np.full(n, 10, dtype="int64"),
+        }
+    )
+
+
+def test_dv005_contiguous_passes() -> None:
+    assert Dv005Gaps().check(_frame_with_gap([0, 1, 2, 3]), _ctx()) == []
+
+
+def test_dv005_small_short_gap_warns() -> None:
+    # 1 missing of 5 -> fraction 0.2 > 0.001 -> FAIL. Use a large set for WARN.
+    big = list(range(2000))
+    del big[1000]  # single missing bar: fraction ~0.0005 <= 0.001, run=1 <= 3
+    findings = Dv005Gaps().check(_frame_with_gap(big), _ctx())
+    assert findings and findings[0].severity == "WARN"
+
+
+def test_dv005_large_gap_fails() -> None:
+    # 4 consecutive missing bars -> longest run 4 > 3 -> FAIL.
+    bars = [0, 1, 6, 7, 8, 9, 10]
+    findings = Dv005Gaps().check(_frame_with_gap(bars), _ctx())
+    assert findings and findings[0].severity == "FAIL"
+
+
+def test_dv005_thresholds_from_context() -> None:
+    bars = [0, 1, 2, 3, 8]  # one gap of 4 -> FAIL by default threshold 3
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        thresholds={"gap_max_bars": 10, "gap_max_fraction": 1.0},
+    )
+    findings = Dv005Gaps().check(_frame_with_gap(bars), ctx)
+    assert findings and findings[0].severity == "WARN"
+
+
+# -- DV-006 OHLC -------------------------------------------------------------
+def test_dv006_ok() -> None:
+    assert Dv006OhlcSanity().check(_good_frame(), _ctx()) == []
+
+
+def test_dv006_negative_price_fails() -> None:
+    df = _good_frame()
+    df.loc[0, "close"] = -1.0
+    findings = Dv006OhlcSanity().check(df, _ctx())
+    assert any("close" in f.detail for f in findings)
+
+
+def test_dv006_low_above_open_fails() -> None:
+    df = _good_frame()
+    df.loc[0, "low"] = df.loc[0, "open"] + 1.0
+    findings = Dv006OhlcSanity().check(df, _ctx())
+    assert any("low" in f.detail for f in findings)
+
+
+def test_dv006_high_below_close_fails() -> None:
+    df = _good_frame()
+    df.loc[0, "high"] = df.loc[0, "close"] - 1.0
+    findings = Dv006OhlcSanity().check(df, _ctx())
+    assert any("high" in f.detail for f in findings)
+
+
+def test_dv006_ignores_missing_rows() -> None:
+    df = _good_frame()
+    df["is_missing"] = False
+    df.loc[0, "is_missing"] = True
+    df.loc[0, ["open", "high", "low", "close"]] = np.nan
+    assert Dv006OhlcSanity().check(df, _ctx()) == []
+
+
+# -- DV-007 volume -----------------------------------------------------------
+def test_dv007_ok() -> None:
+    assert Dv007VolumeSanity().check(_good_frame(), _ctx()) == []
+
+
+def test_dv007_negative_volume_fails() -> None:
+    df = _good_frame()
+    df.loc[1, "volume"] = -5.0
+    findings = Dv007VolumeSanity().check(df, _ctx())
+    assert any("volume" in f.detail for f in findings)
+
+
+def test_dv007_negative_trades_fails() -> None:
+    df = _good_frame()
+    df["trades"] = df["trades"].astype("int64")
+    df.loc[2, "trades"] = -1
+    findings = Dv007VolumeSanity().check(df, _ctx())
+    assert any("trades" in f.detail for f in findings)
+
+
+# -- DV-008 closed only ------------------------------------------------------
+def test_dv008_no_fetch_time_is_skipped() -> None:
+    assert Dv008ClosedBarsOnly().check(_good_frame(), _ctx()) == []
+
+
+def test_dv008_all_closed_passes() -> None:
+    df = _good_frame()
+    last_close = int(df["close_time_ms"].max())
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        fetch_time_ms=last_close + 1,
+    )
+    assert Dv008ClosedBarsOnly().check(df, ctx) == []
+
+
+def test_dv008_in_progress_bar_fails() -> None:
+    df = _good_frame()
+    last_close = int(df["close_time_ms"].max())
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        fetch_time_ms=last_close,  # not strictly less -> not closed
+    )
+    findings = Dv008ClosedBarsOnly().check(df, ctx)
+    assert findings and findings[0].severity == "FAIL"

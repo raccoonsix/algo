@@ -19,19 +19,27 @@ from atr.validation.rules import (
     Dv002StrictlyIncreasing,
     Dv003NoDuplicates,
     Dv004GridAlignment,
+    Dv005Gaps,
+    Dv006OhlcSanity,
+    Dv007VolumeSanity,
+    Dv008ClosedBarsOnly,
 )
 
 
 def default_rules() -> list[Rule]:
-    """Return the ordered rule set implemented so far (DV-001..DV-004).
+    """Return the ordered rule set implemented so far (DV-001..DV-008).
 
-    Later tasks append DV-005.. here (T-2.5, T-2.6).
+    Later tasks append DV-009.. here (T-2.6).
     """
     return [
         Dv001RequiredColumns(),
         Dv002StrictlyIncreasing(),
         Dv003NoDuplicates(),
         Dv004GridAlignment(),
+        Dv005Gaps(),
+        Dv006OhlcSanity(),
+        Dv007VolumeSanity(),
+        Dv008ClosedBarsOnly(),
     ]
 
 

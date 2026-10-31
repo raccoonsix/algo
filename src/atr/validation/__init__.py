@@ -15,6 +15,10 @@ from atr.validation.rules import (
     Dv002StrictlyIncreasing,
     Dv003NoDuplicates,
     Dv004GridAlignment,
+    Dv005Gaps,
+    Dv006OhlcSanity,
+    Dv007VolumeSanity,
+    Dv008ClosedBarsOnly,
 )
 from atr.validation.runner import default_rules, validate
 
@@ -23,6 +27,10 @@ __all__ = [
     "Dv002StrictlyIncreasing",
     "Dv003NoDuplicates",
     "Dv004GridAlignment",
+    "Dv005Gaps",
+    "Dv006OhlcSanity",
+    "Dv007VolumeSanity",
+    "Dv008ClosedBarsOnly",
     "Severity",
     "ValidationContext",
     "ValidationReport",
