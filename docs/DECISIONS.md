@@ -27,6 +27,7 @@
 | D-016 | Hypotheses must be pre-registered by a human with an economic rationale | ACCEPTED |
 | D-017 | Config blocks: add `ai:` section and `llm.contract_retry` to match AI_SPEC | ACCEPTED |
 | D-018 | Dev dependency: add `types-PyYAML` type stubs for `mypy --strict` | ACCEPTED |
+| D-019 | Dev dependency: add `pandas-stubs` for `mypy --strict` | ACCEPTED |
 
 ## Entry template
 
@@ -215,3 +216,12 @@
 - Alternatives considered: a per-import `# type: ignore[import-untyped]` (rejected: suppresses type checking of the yaml API surface); wrapping yaml in an untyped shim (rejected: extra code).
 - Consequences: Dev environment installs one extra stub package; runtime dependency set is unchanged. Regenerate `requirements.lock` (R-13 bookkeeping).
 - Revisit when: PyYAML ships inline types, or YAML use is replaced.
+
+### D-019: Dev dependency: add `pandas-stubs` for `mypy --strict`
+- Status: ACCEPTED
+- Date: 2026-10-28
+- Context: D-006 accepts pandas as a runtime dependency. `mypy --strict` (AGENTS §7) reports `Library stubs not installed for "pandas"` because pandas ships without complete inline type information; without stubs, DataFrame parameters degrade to `Any` and defeat strict checking of the validation layer (T-2.4).
+- Decision: Add `pandas-stubs` (pinned) to the `dev` extra only. No runtime effect.
+- Alternatives considered: per-import `# type: ignore[import-untyped]` (rejected: suppresses DataFrame typing across the codebase); typing frames as `Any` (rejected: loses the validation layer's type safety).
+- Consequences: Dev environment installs one extra stub package; runtime dependency set unchanged. Regenerate `requirements.lock`.
+- Revisit when: pandas ships full inline types, or pandas is replaced.

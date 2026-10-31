@@ -37,6 +37,7 @@
 - `atr.ingestion` (T-2.1): `ExchangeClient` protocol and raw-response models (`RawRow`, `RawResponse`, `RawKlinesResponse`) in `exchange.py`; `BitgetClient` adapter in `bitget.py` (interval->`granularity` map, verified response parsing, closed-bar filtering via server time, error mapping). Recorded fixture `tests/fixtures/bitget_spot_candles_SOLUSDT_1h.json`; tests in `tests/test_ingestion_bitget.py`. HTTP retry/rate-limiting deferred to T-2.2. [T-2.1]
 - HTTP transport layer (T-2.2): `RateLimiter` (sliding-window, `requests_per_minute`) and `HttpClient` (bounded retries on timeout/5xx/429, exponential backoff + seeded jitter, `Retry-After` support, error mapping to `SourceUnavailableError`/`RateLimitError`); wired into `BitgetClient`. Tests: `tests/test_ingestion_http.py` (TC-DATA-017). [T-2.2]
 - Raw layer writer (T-2.3): `atr.storage.raw` — append-only `jsonl.gz` per batch at `data/raw/{source}/{symbol}/{interval}/{YYYY-MM}/{batch_id}.jsonl.gz` (month-partitioned, atomic write, refuses overwrite), returning per-file SHA-256. Tests: `tests/test_storage_raw.py`. [T-2.3]
+- Validation framework + DV-001..DV-004 (T-2.4): `atr.validation` — `Finding`, `ValidationContext`, `Rule` protocol, `ValidationReport` with status aggregation (`FAIL` > `PASS_WITH_WARNINGS` > `PASS`), and `validate()` runner; rules DV-001 (required columns/dtypes), DV-002 (strictly increasing `open_time_ms`), DV-003 (no duplicate bar key), DV-004 (grid alignment + close_time consistency). Tests: `tests/test_validation_framework.py`. [T-2.4]
 - Documented `mingw32-make` as the Windows equivalent of `make` in `AGENTS.md` §5 and `README.md`. [T-1.3]
 - DATA_SPEC §10: added the `ai:` config block (`min_required_fields`, `number_rel_tol`, `min_evidence_refs`, `cutoff_margin_days`) and `llm.contract_retry`, which AI_SPEC referenced but the config spec omitted (D-017). [T-1.8]
 
@@ -45,6 +46,7 @@
 - Accepted: D-017 (add `ai:` config block and `llm.contract_retry`), D-018 (`types-PyYAML` dev stub for mypy-strict). [T-1.8]
 - Accepted: D-003 (market scope: `SOLUSDT` spot, `1h` primary / `15m` secondary; owner chose an alt pair). [T-2.1]
 - Accepted: D-004 (data source: Bitget public REST market data; endpoints verified, OQ-7 terms confirmed by owner). [T-2.1]
+- Accepted: D-019 (`pandas-stubs` dev stub for mypy-strict). [T-2.4]
 
 ## [0.0.1] - 2026-10-28
 

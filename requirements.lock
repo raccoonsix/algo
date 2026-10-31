@@ -1,5 +1,5 @@
 # requirements.lock - fully pinned dependency set for `atr`.
-# Generated from a clean `pip install -e ".[dev]"` resolution. See DECISIONS D-006/D-007/D-018.
+# Generated from a clean `pip install -e ".[dev]"` resolution. See DECISIONS D-006/D-007/D-018/D-019.
 # Regenerate with: pip freeze (excluding the editable `atr` package).
 
 annotated-types==0.8.0
@@ -19,6 +19,7 @@ mypy==2.4.0
 numpy==2.5.4
 packaging==26.3
 pandas==3.1.0
+pandas-stubs==3.1.0.261029
 pathspec==1.1.1
 pluggy==1.7.0
 pyarrow==26.0.0
