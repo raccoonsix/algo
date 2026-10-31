@@ -195,14 +195,38 @@ def read_clean(
     """
     series = _series_dir(source, symbol, interval, root=root)
     if not series.is_dir():
-        return pd.DataFrame(columns=list(CLEAN_COLUMNS))
+        return _empty_clean_frame()
     files = sorted(series.rglob("*.parquet"))
     if not files:
-        return pd.DataFrame(columns=list(CLEAN_COLUMNS))
+        return _empty_clean_frame()
     frames = [pd.read_parquet(f) for f in files]
     combined = pd.concat(frames, ignore_index=True, sort=False)
     combined = combined.drop_duplicates("open_time_ms", keep="last")
     return combined.sort_values("open_time_ms").reset_index(drop=True)
+
+
+def _empty_clean_frame() -> pd.DataFrame:
+    """Return an empty frame with the canonical clean schema and dtypes."""
+    frame = pd.DataFrame(
+        {
+            "source": pd.Series(dtype="object"),
+            "symbol": pd.Series(dtype="object"),
+            "interval": pd.Series(dtype="object"),
+            "open_time_ms": pd.Series(dtype="int64"),
+            "close_time_ms": pd.Series(dtype="int64"),
+            "open": pd.Series(dtype="float64"),
+            "high": pd.Series(dtype="float64"),
+            "low": pd.Series(dtype="float64"),
+            "close": pd.Series(dtype="float64"),
+            "volume": pd.Series(dtype="float64"),
+            "quote_volume": pd.Series(dtype="float64"),
+            "trades": pd.Series(dtype="Int64"),
+            "taker_buy_base": pd.Series(dtype="Float64"),
+            "taker_buy_quote": pd.Series(dtype="Float64"),
+            "is_missing": pd.Series(dtype="bool"),
+        }
+    )
+    return frame.loc[:, list(CLEAN_COLUMNS)]
 
 
 def last_stored_open_ms(

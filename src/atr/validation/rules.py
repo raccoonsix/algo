@@ -329,8 +329,12 @@ class Dv007VolumeSanity:
             return []
         findings: list[Finding] = []
         for col in cols:
-            series = pd.to_numeric(sub[col], errors="coerce").to_numpy(dtype="float64")
-            bad = int((~np.isfinite(series) | (series < 0)).sum())
+            series = sub[col]
+            # Ignore null values (e.g. `trades` absent for a source): only
+            # present values are checked. DATA_SPEC §2: nullable if source lacks it.
+            numeric = pd.to_numeric(series, errors="coerce").astype("float64")
+            present = numeric[numeric.notna()].to_numpy(dtype="float64")
+            bad = int((~np.isfinite(present) | (present < 0)).sum())
             if bad:
                 findings.append(
                     Finding(

@@ -240,6 +240,46 @@ def batch_manifest_path(batch_id: str, *, root: str | Path = MANIFESTS_DIR) -> P
     return Path(root) / f"{batch_id}.json"
 
 
+def read_batch_manifest(batch_id: str, *, root: str | Path = MANIFESTS_DIR) -> BatchManifest | None:
+    """Read a batch manifest by id, or None if absent/invalid."""
+    path = batch_manifest_path(batch_id, root=root)
+    if not path.is_file():
+        return None
+    try:
+        return BatchManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    except (ValueError, OSError):
+        return None
+
+
+def latest_batch_manifest(
+    *, source: str, symbol: str, interval: str, root: str | Path = MANIFESTS_DIR
+) -> BatchManifest | None:
+    """Return the most recently modified manifest for a series, or None.
+
+    "Most recent" is by file mtime (the batch with the newest write wins).
+    """
+    directory = Path(root)
+    if not directory.is_dir():
+        return None
+    newest: BatchManifest | None = None
+    newest_mtime = -1.0
+    for path in directory.glob("*.json"):
+        try:
+            manifest = BatchManifest.model_validate_json(path.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
+        if (
+            manifest.source == source
+            and manifest.symbol == symbol
+            and manifest.interval == interval
+        ):
+            mtime = path.stat().st_mtime
+            if mtime >= newest_mtime:
+                newest_mtime = mtime
+                newest = manifest
+    return newest
+
+
 def write_batch_manifest(
     manifest: BatchManifest,
     *,

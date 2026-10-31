@@ -18,6 +18,8 @@ from pathlib import Path
 import pandas as pd
 
 from atr.common.errors import DataError, DataValidationError
+from atr.ingestion.exchange import ExchangeClient, RawRow
+from atr.ingestion.fetcher import FetchResult, fetch_range
 from atr.storage.clean import CleanFileInfo, to_clean_schema, write_clean
 from atr.storage.manifest import (
     BatchManifest,
@@ -27,6 +29,7 @@ from atr.storage.manifest import (
     write_batch_manifest,
 )
 from atr.storage.quarantine import QuarantineInfo, write_quarantine
+from atr.storage.raw import RawRecord, write_raw_batch
 from atr.validation.framework import (
     Finding,
     Rule,
@@ -166,3 +169,95 @@ def promote_batch(
         clean_files=clean_files,
         manifest_path=manifest_path,
     )
+
+
+def rows_to_frame(rows: list[RawRow]) -> pd.DataFrame:
+    """Convert parsed `RawRow` objects into a raw dataframe (strings preserved)."""
+    if not rows:
+        return pd.DataFrame()
+    return pd.DataFrame(
+        {
+            "open_time_ms": [r.open_time_ms for r in rows],
+            "open": [r.open for r in rows],
+            "high": [r.high for r in rows],
+            "low": [r.low for r in rows],
+            "close": [r.close for r in rows],
+            "volume": [r.base_volume for r in rows],
+            "quote_volume": [r.quote_volume for r in rows],
+        }
+    )
+
+
+def fetch_and_promote(
+    client: ExchangeClient,
+    ctx: ValidationContext,
+    *,
+    start_ms: int,
+    end_ms: int,
+    batch_id: str,
+    endpoint: str,
+    page_limit: int = 1000,
+    raw_root: str | Path = Path("data") / "raw",
+    clean_root: str | Path = Path("data") / "clean",
+    manifests_root: str | Path = Path("data") / "manifests",
+    quarantine_root: str | Path = Path("data") / "quarantine",
+    code_version: str = "unknown",
+    config_hash: str = "unknown",
+    rules: list[Rule] | None = None,
+) -> PromotionResult:
+    """Fetch a range, write raw, validate, then promote-or-quarantine (T-2.9).
+
+    Composes :func:`atr.ingestion.fetcher.fetch_range`, the raw writer, and
+    :func:`promote_batch`. On an empty fetch, returns a PASS result with no files
+    (idempotent no-op).
+    """
+    fetched: FetchResult = fetch_range(
+        client, ctx.symbol, ctx.interval, start_ms, end_ms, page_limit=page_limit
+    )
+    if fetched.empty:
+        report = ValidationReport.from_findings(
+            source=ctx.source, symbol=ctx.symbol, interval=ctx.interval, findings=[]
+        )
+        return PromotionResult(status=report.status, report=report)
+
+    raw_records = [
+        RawRecord(
+            request=resp.request,
+            response_body=resp.response_body,
+            fetched_at_ms=resp.fetched_at_ms,
+            http_status=resp.http_status,
+            source=resp.source,
+            endpoint=resp.endpoint,
+        )
+        for kr in fetched.responses
+        for resp in kr.responses
+    ]
+    raw_written = write_raw_batch(
+        raw_records,
+        source=ctx.source,
+        symbol=ctx.symbol,
+        interval=ctx.interval,
+        batch_id=batch_id,
+        root=raw_root,
+    )
+    raw_file = next(iter(raw_written.values())).path if raw_written else ""
+    raw_sha = next(iter(raw_written.values())).sha256 if raw_written else ""
+
+    frame = rows_to_frame(fetched.rows)
+    result = promote_batch(
+        frame,
+        ctx,
+        batch_id=batch_id,
+        endpoint=endpoint,
+        requested_range_ms=(start_ms, end_ms),
+        fetched_at_ms=fetched.rows[-1].open_time_ms,
+        raw_file=str(raw_file),
+        raw_sha256=raw_sha,
+        code_version=code_version,
+        config_hash=config_hash,
+        clean_root=clean_root,
+        manifests_root=manifests_root,
+        quarantine_root=quarantine_root,
+        rules=rules,
+    )
+    return result

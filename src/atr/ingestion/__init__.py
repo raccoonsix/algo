@@ -12,7 +12,12 @@ from atr.ingestion.exchange import (
 )
 from atr.ingestion.fetcher import FetchResult, fetch_incremental, fetch_range
 from atr.ingestion.http import HttpClient, RateLimiter
-from atr.ingestion.pipeline import PromotionResult, promote_batch
+from atr.ingestion.pipeline import (
+    PromotionResult,
+    fetch_and_promote,
+    promote_batch,
+    rows_to_frame,
+)
 
 __all__ = [
     "BitgetClient",
@@ -24,7 +29,9 @@ __all__ = [
     "RawKlinesResponse",
     "RawResponse",
     "RawRow",
+    "fetch_and_promote",
     "fetch_incremental",
     "fetch_range",
     "promote_batch",
+    "rows_to_frame",
 ]
