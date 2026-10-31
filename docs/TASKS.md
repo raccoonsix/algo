@@ -4,7 +4,7 @@
 > Work order for AI coding agents and humans. Rules: `AGENTS.md` §6 (workflow) and §10 (Definition of Done).
 
 **Current phase:** 2 (Data pipeline) — Phase 1 (Foundation) complete, gate G1 passed [T-1.11].
-**Next task:** T-2.8 (fetcher: pagination, incremental, idempotency) — unblocked.
+**Next task:** T-2.9 (CLI: `atr data fetch`/`validate`/`status`) — unblocked.
 
 ## How to use
 
@@ -45,7 +45,7 @@ Owner questions that block tasks are in `PRD.md` §12 (OQ-1..OQ-7).
 | T-2.5 | DV-005..DV-008 (gaps, OHLC sanity, volume sanity, closed-only) | T-2.4 | TC-DATA tests for DV-005..008 pass incl. gap threshold cases (TC-DATA-022) | DONE |
 | T-2.6 | DV-009..DV-013 (outliers, zero volume, staleness, clock skew, continuity) | T-2.4 | TC-DATA tests for DV-009..013 pass | DONE |
 | T-2.7 | Clean layer: parquet writer, partitioning, gap reindexing with `is_missing`, quarantine writer with `findings.json`, manifest writer (DATA_SPEC §6) | T-2.3, T-2.6 | INV-04 passes: FAIL data never reaches clean; manifests complete | DONE |
-| T-2.8 | Fetcher: historical range, pagination, closed-bar filter, incremental update, idempotency | T-2.2, T-2.7 | INV-15, TC-DATA-016, 019, 020, 021 pass | TODO |
+| T-2.8 | Fetcher: historical range, pagination, closed-bar filter, incremental update, idempotency | T-2.2, T-2.7 | INV-15, TC-DATA-016, 019, 020, 021 pass | DONE |
 | T-2.9 | CLI: `atr data fetch`, `atr data validate`, `atr data status` | T-2.8, T-1.4 | Commands work on fixtures; status shows last update and validation state | TODO |
 | T-2.10 | Integration tests with mocked exchange covering failure modes (TC-DATA-017, 018, 023, 024) | T-2.8 | All pass in `make check` | TODO |
 | T-2.11 | **[HUMAN]** Real-network smoke test (`@pytest.mark.network`): fetch >= 30 days, validate, record outcome | T-2.9 | Result recorded in CHANGELOG; any WARN/FAIL explained | TODO |

@@ -177,6 +177,52 @@ def _partition_path(
     )
 
 
+def _series_dir(source: str, symbol: str, interval: str, *, root: str | Path = CLEAN_ROOT) -> Path:
+    return Path(root) / source / symbol / interval
+
+
+def read_clean(
+    source: str,
+    symbol: str,
+    interval: str,
+    *,
+    root: str | Path = CLEAN_ROOT,
+) -> pd.DataFrame:
+    """Read all clean parquet files for a series, sorted by `open_time_ms`.
+
+    Returns an empty frame (with clean columns) if nothing is stored. Used by the
+    incremental fetcher and by DV-013 continuity checks.
+    """
+    series = _series_dir(source, symbol, interval, root=root)
+    if not series.is_dir():
+        return pd.DataFrame(columns=list(CLEAN_COLUMNS))
+    files = sorted(series.rglob("*.parquet"))
+    if not files:
+        return pd.DataFrame(columns=list(CLEAN_COLUMNS))
+    frames = [pd.read_parquet(f) for f in files]
+    combined = pd.concat(frames, ignore_index=True, sort=False)
+    combined = combined.drop_duplicates("open_time_ms", keep="last")
+    return combined.sort_values("open_time_ms").reset_index(drop=True)
+
+
+def last_stored_open_ms(
+    source: str,
+    symbol: str,
+    interval: str,
+    *,
+    root: str | Path = CLEAN_ROOT,
+) -> int | None:
+    """Return the maximum stored `open_time_ms` for a series, or None if empty.
+
+    Used for incremental updates: the next fetch starts at
+    ``last_stored_open_ms + interval_ms`` (DATA_SPEC §3).
+    """
+    df = read_clean(source, symbol, interval, root=root)
+    if df.empty:
+        return None
+    return int(df["open_time_ms"].max())
+
+
 def write_clean(
     df: pd.DataFrame,
     *,

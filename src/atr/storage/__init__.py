@@ -5,6 +5,8 @@ May import `common`, `config` only (ARCHITECTURE §3).
 
 from atr.storage.clean import (
     CleanFileInfo,
+    last_stored_open_ms,
+    read_clean,
     reindex_to_grid,
     to_clean_schema,
     write_clean,
@@ -51,10 +53,12 @@ __all__ = [
     "dependency_lock_hash",
     "git_sha",
     "is_dirty_tree",
+    "last_stored_open_ms",
     "manifest_path",
     "quarantine_dir",
     "quarantine_fingerprint",
     "raw_batch_path",
+    "read_clean",
     "reindex_to_grid",
     "to_clean_schema",
     "write_batch_manifest",
