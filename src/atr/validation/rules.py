@@ -373,3 +373,202 @@ class Dv008ClosedBarsOnly:
                 )
             ]
         return []
+
+
+class Dv009ReturnOutliers:
+    """DV-009: outlier bar returns ``abs(ln(close/prev_close))``.
+
+    WARN above ``outlier_ret_warn``, FAIL above ``outlier_ret_fail``. The return
+    is computed on consecutive *present* bars (sorted by time); synthetic gap
+    rows are ignored. A single failing bar above the FAIL threshold makes the
+    batch FAIL; otherwise any bar above the WARN threshold yields a WARN.
+
+    Note: DATA_SPEC says thresholds are per 1h and scale by interval via config;
+    the effective thresholds are taken from `ctx.thresholds` as given.
+    """
+
+    id = "DV-009"
+    severity: Severity = "WARN"  # per-case severity decided in check()
+
+    def check(self, df: pd.DataFrame, ctx: ValidationContext) -> list[Finding]:
+        if df.empty or "close" not in df.columns or "open_time_ms" not in df.columns:
+            return []
+        sub = _present_rows(df).sort_values("open_time_ms")
+        closes = pd.to_numeric(sub["close"], errors="coerce").to_numpy(dtype="float64")
+        if closes.size < 2:
+            return []
+        with np.errstate(divide="ignore", invalid="ignore"):
+            rets = np.abs(np.log(closes[1:] / closes[:-1]))
+        warn = ctx.threshold_float("outlier_ret_warn", 0.15)
+        fail = ctx.threshold_float("outlier_ret_fail", 0.50)
+        valid = np.isfinite(rets)
+        n_fail = int((rets[valid] > fail).sum())
+        n_warn = int(((rets[valid] > warn) & (rets[valid] <= fail)).sum())
+        findings: list[Finding] = []
+        if n_fail:
+            findings.append(
+                Finding(
+                    rule=self.id,
+                    severity="FAIL",
+                    detail=f"{n_fail} bar return(s) above fail threshold {fail}",
+                    count=n_fail,
+                )
+            )
+        if n_warn:
+            findings.append(
+                Finding(
+                    rule=self.id,
+                    severity="WARN",
+                    detail=f"{n_warn} bar return(s) above warn threshold {warn}",
+                    count=n_warn,
+                )
+            )
+        return findings
+
+
+class Dv010ZeroVolume:
+    """DV-010: zero-volume bar fraction (> ``zero_volume_warn_fraction`` -> WARN)."""
+
+    id = "DV-010"
+    severity: Severity = "WARN"
+
+    def check(self, df: pd.DataFrame, ctx: ValidationContext) -> list[Finding]:
+        if df.empty or "volume" not in df.columns:
+            return []
+        sub = _present_rows(df)
+        if sub.empty:
+            return []
+        vol = pd.to_numeric(sub["volume"], errors="coerce").to_numpy(dtype="float64")
+        zero = int((vol == 0).sum())
+        fraction = zero / vol.size
+        threshold = ctx.threshold_float("zero_volume_warn_fraction", 0.01)
+        if fraction > threshold:
+            return [
+                Finding(
+                    rule=self.id,
+                    severity=self.severity,
+                    detail=f"zero-volume fraction {fraction:.4f} > {threshold}",
+                    count=zero,
+                )
+            ]
+        return []
+
+
+class Dv011Staleness:
+    """DV-011 (live only): ``now - last_close_time_ms > stale_after_bars * interval_ms``.
+
+    FAIL when stale. Skipped when the context has no ``now_ms``.
+    """
+
+    id = "DV-011"
+    severity: Severity = "FAIL"
+
+    def check(self, df: pd.DataFrame, ctx: ValidationContext) -> list[Finding]:
+        if ctx.now_ms is None or df.empty or "close_time_ms" not in df.columns:
+            return []
+        sub = _present_rows(df)
+        if sub.empty:
+            return []
+        last_close = int(sub["close_time_ms"].max())
+        stale_after = ctx.threshold_int("stale_after_bars", 2) * ctx.interval_ms
+        age = ctx.now_ms - last_close
+        if age > stale_after:
+            return [
+                Finding(
+                    rule=self.id,
+                    severity=self.severity,
+                    detail=(
+                        f"data stale: age {age} ms > {stale_after} ms (last_close={last_close})"
+                    ),
+                )
+            ]
+        return []
+
+
+class Dv012ClockSkew:
+    """DV-012 (live only): ``abs(local_utc - server_time)``.
+
+    WARN above ``clock_skew_warn_ms``, FAIL above ``clock_skew_fail_ms``.
+    Skipped unless both ``local_time_ms`` and ``server_time_ms`` are provided.
+    """
+
+    id = "DV-012"
+    severity: Severity = "WARN"  # per-case severity decided in check()
+
+    def check(self, df: pd.DataFrame, ctx: ValidationContext) -> list[Finding]:
+        if ctx.local_time_ms is None or ctx.server_time_ms is None:
+            return []
+        skew = abs(ctx.local_time_ms - ctx.server_time_ms)
+        warn = ctx.threshold_int("clock_skew_warn_ms", 2000)
+        fail = ctx.threshold_int("clock_skew_fail_ms", 10000)
+        if skew > fail:
+            return [
+                Finding(
+                    rule=self.id,
+                    severity="FAIL",
+                    detail=f"clock skew {skew} ms > fail {fail} ms",
+                )
+            ]
+        if skew > warn:
+            return [
+                Finding(
+                    rule=self.id,
+                    severity="WARN",
+                    detail=f"clock skew {skew} ms > warn {warn} ms",
+                )
+            ]
+        return []
+
+
+class Dv013Continuity:
+    """DV-013: overlapping bars must match stored OHLCV within ``rel_tol``.
+
+    Compares `df` (new batch) against `ctx.stored_bars` on
+    ``(source,symbol,interval,open_time_ms)``. For overlapping bars, OHLCV must
+    match within ``rel_tol`` (default 1e-9); otherwise the batch is treated as a
+    restatement -> FAIL.
+
+    Skipped when no ``stored_bars`` are provided.
+    """
+
+    id = "DV-013"
+    severity: Severity = "FAIL"
+    _KEY = ["source", "symbol", "interval", "open_time_ms"]
+    _VALUES = ["open", "high", "low", "close", "volume", "quote_volume"]
+
+    def check(self, df: pd.DataFrame, ctx: ValidationContext) -> list[Finding]:
+        stored = ctx.stored_bars
+        if stored is None or stored.empty or df.empty:
+            return []
+        if any(k not in df.columns for k in self._KEY) or any(
+            k not in stored.columns for k in self._KEY
+        ):
+            return []
+        rel_tol = ctx.threshold_float("rel_tol", 1e-9)
+        merged = df.merge(stored, on=self._KEY, suffixes=("", "_stored"))
+        if merged.empty:
+            return []
+        conflicts = np.zeros(len(merged), dtype=bool)
+        for col in self._VALUES:
+            stored_col = f"{col}_stored"
+            if col not in merged.columns or stored_col not in merged.columns:
+                continue
+            new_v = pd.to_numeric(merged[col], errors="coerce").to_numpy(dtype="float64")
+            old_v = pd.to_numeric(merged[stored_col], errors="coerce").to_numpy(dtype="float64")
+            denom = np.maximum(np.abs(old_v), 1e-12)
+            diff = np.abs(new_v - old_v) / denom
+            conflicts |= np.isfinite(diff) & (diff > rel_tol)
+        n = int(conflicts.sum())
+        if n:
+            return [
+                Finding(
+                    rule=self.id,
+                    severity=self.severity,
+                    detail=(
+                        f"{n} overlapping bar(s) differ from stored data "
+                        f"beyond rel_tol={rel_tol} (restatement)"
+                    ),
+                    count=n,
+                )
+            ]
+        return []

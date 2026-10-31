@@ -14,6 +14,11 @@ from atr.validation import (
     Dv006OhlcSanity,
     Dv007VolumeSanity,
     Dv008ClosedBarsOnly,
+    Dv009ReturnOutliers,
+    Dv010ZeroVolume,
+    Dv011Staleness,
+    Dv012ClockSkew,
+    Dv013Continuity,
     ValidationContext,
     aggregate_status,
     validate,
@@ -311,3 +316,152 @@ def test_dv008_in_progress_bar_fails() -> None:
     )
     findings = Dv008ClosedBarsOnly().check(df, ctx)
     assert findings and findings[0].severity == "FAIL"
+
+
+# -- DV-009 outlier returns --------------------------------------------------
+def _frame_with_closes(closes: list[float]) -> pd.DataFrame:
+    base = 1_699_920_000_000
+    n = len(closes)
+    open_ms = np.array([base + i * _HOUR_MS for i in range(n)], dtype="int64")
+    c = np.array(closes, dtype="float64")
+    return pd.DataFrame(
+        {
+            "source": pd.array(["bitget"] * n, dtype="object"),
+            "symbol": pd.array(["SOLUSDT"] * n, dtype="object"),
+            "interval": pd.array(["1h"] * n, dtype="object"),
+            "open_time_ms": open_ms,
+            "close_time_ms": open_ms + _HOUR_MS - 1,
+            "open": c,
+            "high": c,
+            "low": c,
+            "close": c,
+            "volume": np.full(n, 100.0),
+            "quote_volume": np.full(n, 150.0),
+            "trades": np.full(n, 10, dtype="int64"),
+        }
+    )
+
+
+def test_dv009_normal_returns_pass() -> None:
+    assert Dv009ReturnOutliers().check(_frame_with_closes([1.0, 1.01, 1.02]), _ctx()) == []
+
+
+def test_dv009_warn_outlier() -> None:
+    # ln(1.2/1.0)=0.182 > 0.15 warn, <= 0.50 fail
+    findings = Dv009ReturnOutliers().check(_frame_with_closes([1.0, 1.2]), _ctx())
+    assert findings and findings[0].severity == "WARN"
+
+
+def test_dv009_fail_outlier() -> None:
+    # ln(2.0/1.0)=0.693 > 0.50 fail
+    findings = Dv009ReturnOutliers().check(_frame_with_closes([1.0, 2.0]), _ctx())
+    assert any(f.severity == "FAIL" for f in findings)
+
+
+# -- DV-010 zero volume ------------------------------------------------------
+def test_dv010_ok() -> None:
+    assert Dv010ZeroVolume().check(_good_frame(), _ctx()) == []
+
+
+def test_dv010_warns_above_fraction() -> None:
+    df = _good_frame(100)
+    df.loc[df.index[:5], "volume"] = 0.0  # 5% > 1%
+    findings = Dv010ZeroVolume().check(df, _ctx())
+    assert findings and findings[0].severity == "WARN"
+
+
+# -- DV-011 staleness --------------------------------------------------------
+def test_dv011_skipped_without_now() -> None:
+    assert Dv011Staleness().check(_good_frame(), _ctx()) == []
+
+
+def test_dv011_fresh_passes() -> None:
+    df = _good_frame()
+    last_close = int(df["close_time_ms"].max())
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        now_ms=last_close + _HOUR_MS,  # age == 1 bar <= 2 -> fresh
+    )
+    assert Dv011Staleness().check(df, ctx) == []
+
+
+def test_dv011_stale_fails() -> None:
+    df = _good_frame()
+    last_close = int(df["close_time_ms"].max())
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        now_ms=last_close + 5 * _HOUR_MS,  # age 5 bars > 2 -> stale
+    )
+    findings = Dv011Staleness().check(df, ctx)
+    assert findings and findings[0].severity == "FAIL"
+
+
+# -- DV-012 clock skew -------------------------------------------------------
+def test_dv012_skipped_without_times() -> None:
+    assert Dv012ClockSkew().check(_good_frame(), _ctx()) == []
+
+
+def test_dv012_small_skew_passes() -> None:
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        local_time_ms=1_000_000,
+        server_time_ms=1_000_500,
+    )
+    assert Dv012ClockSkew().check(_good_frame(), ctx) == []
+
+
+def test_dv012_warn_and_fail() -> None:
+    base = dict(source="bitget", symbol="SOLUSDT", interval="1h", interval_ms=_HOUR_MS)
+    warn_ctx = ValidationContext(**base, local_time_ms=0, server_time_ms=5000)
+    assert Dv012ClockSkew().check(_good_frame(), warn_ctx)[0].severity == "WARN"
+    fail_ctx = ValidationContext(**base, local_time_ms=0, server_time_ms=20000)
+    assert Dv012ClockSkew().check(_good_frame(), fail_ctx)[0].severity == "FAIL"
+
+
+# -- DV-013 continuity -------------------------------------------------------
+def test_dv013_skipped_without_stored() -> None:
+    assert Dv013Continuity().check(_good_frame(), _ctx()) == []
+
+
+def test_dv013_matching_overlap_passes() -> None:
+    df = _good_frame()
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        stored_bars=df.copy(),
+    )
+    assert Dv013Continuity().check(df, ctx) == []
+
+
+def test_dv013_restatement_fails() -> None:
+    df = _good_frame()
+    stored = df.copy()
+    stored.loc[0, "close"] = stored.loc[0, "close"] + 1.0  # differs
+    ctx = ValidationContext(
+        source="bitget",
+        symbol="SOLUSDT",
+        interval="1h",
+        interval_ms=_HOUR_MS,
+        stored_bars=stored,
+    )
+    findings = Dv013Continuity().check(df, ctx)
+    assert findings and findings[0].severity == "FAIL"
+
+
+# -- runner includes all 13 rules --------------------------------------------
+def test_validate_runs_all_thirteen_rules() -> None:
+    from atr.validation import runner
+
+    ids = [r.id for r in runner.default_rules()]
+    assert ids == [f"DV-{i:03d}" for i in range(1, 14)]

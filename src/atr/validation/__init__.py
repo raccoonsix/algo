@@ -19,6 +19,11 @@ from atr.validation.rules import (
     Dv006OhlcSanity,
     Dv007VolumeSanity,
     Dv008ClosedBarsOnly,
+    Dv009ReturnOutliers,
+    Dv010ZeroVolume,
+    Dv011Staleness,
+    Dv012ClockSkew,
+    Dv013Continuity,
 )
 from atr.validation.runner import default_rules, validate
 
@@ -31,6 +36,11 @@ __all__ = [
     "Dv006OhlcSanity",
     "Dv007VolumeSanity",
     "Dv008ClosedBarsOnly",
+    "Dv009ReturnOutliers",
+    "Dv010ZeroVolume",
+    "Dv011Staleness",
+    "Dv012ClockSkew",
+    "Dv013Continuity",
     "Severity",
     "ValidationContext",
     "ValidationReport",

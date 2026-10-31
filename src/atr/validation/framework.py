@@ -44,9 +44,15 @@ class ValidationContext(BaseModel):
         When the data was fetched (used by DV-008 closed-bar check).
     thresholds:
         Rule thresholds from config ``validation.*`` (name -> value).
+    now_ms, server_time_ms, local_time_ms:
+        Live-only inputs for DV-011 (staleness) and DV-012 (clock skew). When
+        None, those rules are skipped (offline validation).
+    stored_bars:
+        Already-stored bars for DV-013 continuity checking. When None, DV-013 is
+        skipped.
     """
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
     source: str
     symbol: str
@@ -54,6 +60,12 @@ class ValidationContext(BaseModel):
     interval_ms: int
     fetch_time_ms: int | None = None
     thresholds: dict[str, float | int] = Field(default_factory=dict)
+    # Live-only inputs (DV-011, DV-012). None => the rule is skipped.
+    now_ms: int | None = None
+    server_time_ms: int | None = None
+    local_time_ms: int | None = None
+    # Stored data for continuity (DV-013). None => the rule is skipped.
+    stored_bars: pd.DataFrame | None = None
 
     def threshold_float(self, name: str, default: float) -> float:
         value = self.thresholds.get(name, default)

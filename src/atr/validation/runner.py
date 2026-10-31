@@ -23,14 +23,16 @@ from atr.validation.rules import (
     Dv006OhlcSanity,
     Dv007VolumeSanity,
     Dv008ClosedBarsOnly,
+    Dv009ReturnOutliers,
+    Dv010ZeroVolume,
+    Dv011Staleness,
+    Dv012ClockSkew,
+    Dv013Continuity,
 )
 
 
 def default_rules() -> list[Rule]:
-    """Return the ordered rule set implemented so far (DV-001..DV-008).
-
-    Later tasks append DV-009.. here (T-2.6).
-    """
+    """Return the full ordered rule set (DV-001..DV-013)."""
     return [
         Dv001RequiredColumns(),
         Dv002StrictlyIncreasing(),
@@ -40,6 +42,11 @@ def default_rules() -> list[Rule]:
         Dv006OhlcSanity(),
         Dv007VolumeSanity(),
         Dv008ClosedBarsOnly(),
+        Dv009ReturnOutliers(),
+        Dv010ZeroVolume(),
+        Dv011Staleness(),
+        Dv012ClockSkew(),
+        Dv013Continuity(),
     ]
 
 
