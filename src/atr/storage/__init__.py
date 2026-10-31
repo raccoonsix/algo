@@ -14,9 +14,12 @@ from atr.storage.manifest import (
     manifest_path,
     write_manifest,
 )
+from atr.storage.raw import RawFileInfo, RawRecord, raw_batch_path, write_raw_batch
 
 __all__ = [
     "LLMInfo",
+    "RawFileInfo",
+    "RawRecord",
     "RunManifest",
     "build_manifest",
     "data_manifest_hash",
@@ -24,5 +27,7 @@ __all__ = [
     "git_sha",
     "is_dirty_tree",
     "manifest_path",
+    "raw_batch_path",
     "write_manifest",
+    "write_raw_batch",
 ]
